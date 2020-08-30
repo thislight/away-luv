@@ -60,15 +60,16 @@ function tcp_server:accept(backlog)
 end
 
 function tcp_server:bind(host, port, flags)
-    local stat, message = luv.tcp_bind(self._uvraw, host, port, flags)
-    if not stat then
-        error(message)
-    end
+    return utils.auto_luv_fail_trans(luv.tcp_bind(self._uvraw, host, port, flags))
 end
 
 function tcp_server:close()
     luv.close(self._uvraw, luvserv:bind_callback())
     co.yield()
+end
+
+function tcp_server:set_simultaneous_accepts(enable)
+    return utils.auto_luv_fail_trans(luv.tcp_simultaneous_accepts(self._uvraw, enable))
 end
 
 return tcp_server
