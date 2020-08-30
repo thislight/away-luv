@@ -28,7 +28,7 @@ end
 
 local function auto_luv_fail_trans(stat, message, e, result)
     if stat then
-        return result
+        return result or stat
     else
         return nil, message, e
     end
