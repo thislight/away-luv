@@ -26,6 +26,15 @@ local function table_deep_copy(t1, t2)
     return t2
 end
 
+local function auto_luv_fail_trans(stat, message, e, result)
+    if stat then
+        return result
+    else
+        return nil, message, e
+    end
+end
+
 return {
     table_deep_copy = table_deep_copy,
+    auto_luv_fail_trans = auto_luv_fail_trans,
 }
