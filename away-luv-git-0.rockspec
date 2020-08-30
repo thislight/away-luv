@@ -20,5 +20,6 @@ build = {
       ["away.luv.service"] = "away/luv/service.lua",
       ["away.luv.timer"] = "away/luv/timer.lua",
       ["away.luv.utils"] = "away/luv/utils.lua",
+      ["away.luv.tcp_server"] = "away/luv/tcp_server.lua",
    }
 }
