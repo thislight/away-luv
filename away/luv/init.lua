@@ -19,10 +19,12 @@ local service = require 'away.luv.service'
 local utils = require 'away.luv.utils'
 local timer = require 'away.luv.timer'
 local tcp_server = require 'away.luv.tcp_server'
+local tcp_client = require 'away.luv.tcp_client'
 
 return {
     service = service,
     utils = utils,
     timer = timer,
     tcp_server = tcp_server,
+    tcp_client = tcp_client,
 }

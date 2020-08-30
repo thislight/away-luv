@@ -17,6 +17,7 @@
 local luv = require "luv"
 local luvserv = require "away.luv.service"
 local utils = require "away.luv.utils"
+local TCPClient = require "away.luv.tcp_client"
 local co = coroutine
 
 local tcp_server = {}
@@ -52,7 +53,7 @@ function tcp_server:accept(backlog)
     return function()
         if #queue > 0 then
             local sock = table.remove(queue, 1)
-            return sock
+            return TCPClient:warp(sock)
         else
             co.yield()
         end
