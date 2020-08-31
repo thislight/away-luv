@@ -62,10 +62,9 @@ local dataqueue = {}
 
 function dataqueue:clone_to(new_t) return utils.table_deep_copy(self, new_t) end
 
-function dataqueue:create() return self:clone_to{
-    data = {},
-    waiting_threads = {}
-} end
+function dataqueue:create()
+    return self:clone_to{data = {}, waiting_threads = {}, end_flag = false}
+end
 
 function dataqueue:add(value) table.insert(self.data, value) end
 
@@ -85,6 +84,8 @@ function dataqueue:try_next()
         return nil, self.error
     elseif self:has_data() then
         return table.remove(self.data, 1)
+    elseif self:is_marked_end() then
+        return nil, 'ended'
     else
         return nil, nil
     end
@@ -97,6 +98,10 @@ function dataqueue:set_error(err) self.error = err end
 function dataqueue:has_error() return self.error ~= nil end
 
 function dataqueue:need_wake_back() return self:has_data() or self:has_error() end
+
+function dataqueue:is_marked_end() return self.end_flag end
+
+function dataqueue:mark_end() self.end_flag = true end
 
 return {
     service = dataqueue_service,
