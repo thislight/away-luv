@@ -25,6 +25,21 @@ local luv_service = {
     uv_loop_mode = 'once'
 }
 
+local wakeback_thread = co.create(function()
+    local new_signal
+    while true do
+        local signal = co.yield(new_signal)
+        if signal.source_thread then
+            new_signal = {
+                target_thread = signal.source_thread,
+                kind = 'luv_service_wake_back'
+            }
+        end
+    end
+end)
+
+co.resume(wakeback_thread)
+
 function luv_service:install(scheduler)
     scheduler:install(dataqueue_serv)
     local uvthread = co.create(function()
@@ -51,6 +66,12 @@ end
 
 function luv_service:set_uv_loop_mode(mode)
     self.uv_loop_mode = mode
+end
+
+function luv_service:schedule_wake_back()
+    co.yield({
+        target_thread = wakeback_thread
+    })
 end
 
 return luv_service
