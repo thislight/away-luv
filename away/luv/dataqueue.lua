@@ -15,7 +15,6 @@
 -- You should have received a copy of the GNU General Public License
 -- along with away-luv.  If not, see <http://www.gnu.org/licenses/>.
 local away = require "away"
-local luvserv = require "away.luv.service"
 local utils = require "away.luv.utils"
 
 local dataqueue_service = {installed_flag = false, waited_dataqueue = {}}
@@ -30,9 +29,9 @@ function dataqueue_service:install(scheduler)
                     table.move(self.waited_dataqueue, 1, #self.waited_dataqueue,
                                1, process_queue)
                     self.waited_dataqueue = {}
-                    for dataqueue in ipairs(process_queue) do
+                    for _,dataqueue in ipairs(process_queue) do
                         if dataqueue:need_wake_back() then
-                            for thread in ipairs(self.waiting_threads) do
+                            for thread in ipairs(dataqueue.waiting_threads) do
                                 if coroutine.status(thread) ~= 'dead' then
                                     scheduler:push_signal{
                                         target_thread = thread,
