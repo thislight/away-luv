@@ -17,6 +17,8 @@
 
 local luv = require 'luv'
 
+local dataqueue_serv = require('away.luv.dataqueue').service
+
 local co = coroutine
 
 local luv_service = {
@@ -24,6 +26,7 @@ local luv_service = {
 }
 
 function luv_service:install(scheduler)
+    scheduler:install(dataqueue_serv)
     local uvthread = co.create(function()
         while true do
             luv.run(self.uv_loop_mode)

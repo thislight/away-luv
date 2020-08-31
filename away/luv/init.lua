@@ -20,6 +20,7 @@ local utils = require 'away.luv.utils'
 local timer = require 'away.luv.timer'
 local tcp_server = require 'away.luv.tcp_server'
 local tcp_client = require 'away.luv.tcp_client'
+local dataqueue = require 'away.luv.dataqueue'
 
 return {
     service = service,
@@ -27,4 +28,5 @@ return {
     timer = timer,
     tcp_server = tcp_server,
     tcp_client = tcp_client,
+    dataqueue = dataqueue,
 }
