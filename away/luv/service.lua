@@ -19,12 +19,14 @@ local luv = require 'luv'
 
 local co = coroutine
 
-local luv_service = {}
+local luv_service = {
+    uv_loop_mode = 'once'
+}
 
 function luv_service:install(scheduler)
     local uvthread = co.create(function()
         while true do
-            luv.run('nowait')
+            luv.run(self.uv_loop_mode)
             co.yield()
         end
     end)
@@ -42,6 +44,10 @@ function luv_service:bind_callback()
             result = table.pack(...)
         }
     end
+end
+
+function luv_service:set_uv_loop_mode(mode)
+    self.uv_loop_mode = mode
 end
 
 return luv_service
