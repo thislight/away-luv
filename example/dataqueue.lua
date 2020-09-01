@@ -47,10 +47,12 @@ Scheduler:run_task(function()
         local val, err = global_queue:next()
         if val then
             print(string.format("Hello %s!",val))
-        elseif err == 'ended' then
-            Scheduler:stop()
+        elseif err then
+            print(err)
+            break
         end
     end
+    Scheduler:stop()
 end)
 
 Scheduler:run_task(function()
