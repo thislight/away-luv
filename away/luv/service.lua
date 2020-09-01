@@ -32,7 +32,8 @@ local wakeback_thread = co.create(function()
         if signal.source_thread then
             new_signal = {
                 target_thread = signal.source_thread,
-                kind = 'luv_service_wake_back'
+                kind = 'luv_service_wake_back',
+                source_thread = signal.source_thread,
             }
         end
     end
