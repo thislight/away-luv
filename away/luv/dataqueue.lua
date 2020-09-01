@@ -31,7 +31,7 @@ function dataqueue_service:install(scheduler)
                     self.waited_dataqueue = {}
                     for _,dataqueue in ipairs(process_queue) do
                         if dataqueue:need_wake_back() then
-                            for thread in ipairs(dataqueue.waiting_threads) do
+                            for _,thread in ipairs(dataqueue.waiting_threads) do
                                 if coroutine.status(thread) ~= 'dead' then
                                     scheduler:push_signal{
                                         target_thread = thread,
@@ -73,6 +73,7 @@ function dataqueue:next()
         return value, err
     else
         dataqueue_service:add_waited_queue(self)
+        table.insert(self.waiting_threads, away.get_current_thread())
         away.wait_signal_like(nil, {kind = 'dataqueue_wake_back', queue = self})
         return self:try_next()
     end
