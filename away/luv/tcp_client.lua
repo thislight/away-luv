@@ -98,11 +98,18 @@ end
 
 
 function tcp_client:write(data, blocking)
-    local callback = nil
     if blocking then
-        callback = luvserv:bind_callback()
+        local callback = luvserv:bind_callback()
+        luv.write(self._uvraw, data, callback)
+        local sig = away.wait_signal_like(nil, { kind = 'callback' })
+        if #sig.result > 0 then
+            return false, sig.result[0]
+        else
+            return true, nil
+        end
+    else
+        return utils.auto_luv_fail_trans(luv.write(self._uvraw, data))
     end
-    return utils.auto_luv_fail_trans(luv.write(self._uvraw, data, callback))
 end
 
 return tcp_client
