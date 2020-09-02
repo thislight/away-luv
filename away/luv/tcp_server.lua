@@ -17,10 +17,14 @@
 local luv = require "luv"
 local luvserv = require "away.luv.service"
 local utils = require "away.luv.utils"
+local Dataqueue = require("away.luv.dataqueue").dataqueue
 local TCPClient = require "away.luv.tcp_client"
 local co = coroutine
 
-local tcp_server = {}
+local tcp_server = {
+    managed_dataqueue = {},
+    backlog = 128,
+}
 
 function tcp_server:clone_to(new_t) return utils.table_deep_copy(self, new_t) end
 
@@ -43,33 +47,31 @@ function tcp_server:shutdown(callback)
     end
 end
 
-function tcp_server:accept(backlog)
-    local queue = {}
-    local need_callback = false
-    local local_callback = luvserv:bind_callback()
+function tcp_server:start_accept(backlog, sock_queue)
+    table.insert(self.managed_dataqueue, sock_queue)
     luv.listen(self._uvraw, backlog, function(err)
-        local raw_tcp = luv.new_tcp()
-        luv.accept(self._uvraw, raw_tcp)
-        table.insert(queue, raw_tcp)
-        if need_callback then
-            print('callback')
-            need_callback = false
-            local_callback()
+        if err then
+            sock_queue:set_error(err)
+        else
+            local conn = luv.new_tcp()
+            luv.accept(self._uvraw, conn)
+            sock_queue:add(TCPClient:warp(conn))
         end
     end)
+    return sock_queue
+end
+
+function tcp_server:accept()
+    if not self._internal_dataqueue then
+        self._internal_dataqueue = Dataqueue:create()
+        self:start_accept(self.backlog, self._internal_dataqueue)
+    end
+    return self._internal_dataqueue:next()
+end
+
+function tcp_server:accept_each()
     return function()
-        while true do
-            if #queue > 0 then
-                local sock = table.remove(queue, 1)
-                return TCPClient:warp(sock)
-            elseif self:is_closing() then
-                return nil
-            else
-                need_callback = true
-                co.yield()
-                need_callback = false
-            end
-        end
+        return self:accept()
     end
 end
 
@@ -78,6 +80,9 @@ function tcp_server:bind(host, port, flags)
 end
 
 function tcp_server:close()
+    for _, dq in ipairs(self.managed_dataqueue) do
+        dq:mark_end()
+    end
     luv.close(self._uvraw, luvserv:bind_callback())
     co.yield()
 end

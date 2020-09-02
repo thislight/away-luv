@@ -18,6 +18,7 @@ local away = require "away"
 local luv = require "luv"
 local luvserv = require "away.luv.service"
 local utils = require "away.luv.utils"
+local Dataqueue = require("away.luv.dataqueue").dataqueue
 local co = coroutine
 
 local tcp_client = {}
@@ -29,7 +30,8 @@ function tcp_client:warp(stream_t)
         _uvraw = stream_t,
         dataqueue = {},
         reading_flag = false,
-        eof = false
+        eof = false,
+        maxbuffer = 50,
     }
 end
 
@@ -62,37 +64,36 @@ function tcp_client:close()
     co.yield()
 end
 
-function tcp_client:read()
-    local need_callback = false
-    local local_callback = luvserv:bind_callback()
-    if not self.reading_flag then
-        self.reading_flag = true
-        luv.read_start(self._uvraw, function(err, data)
-            if err then
-                self.err = err
-            elseif data then
-                table.insert(self.dataqueue, data)
-                if need_callback then
-                    need_callback = false
-                    local_callback()
-                end
-            else
-                self.eof = true
-                luv.read_stop(self._uvraw)
-            end
-        end)
-    end
-    while true do
-        if self.err then
-            return nil, self.err
-        elseif #self.dataqueue > 0 then
-            return table.remove(self.dataqueue, 1)
+function tcp_client:start_read(data_queue)
+    luv.read_start(self._uvraw, function(err, data)
+        if err then
+            data_queue:set_error(err)
+        elseif data then
+            data_queue:add(data)
         else
-            need_callback = true
-            co.yield()
-            need_callback = false
+            data_queue:set_error('disconnected')
         end
+    end)
+    return data_queue
+end
+
+function tcp_client:stop_read()
+    luv.read_stop(self._uvraw)
+end
+
+function tcp_client:read()
+    if not self._internal_dataqueue then
+        self._internal_dataqueue = Dataqueue:with_limit(
+            self.maxbuffer,
+            function(dq)
+                self:start_read(dq)
+            end,
+            function(dq)
+                self:stop_read()
+            end
+        )
     end
+    return self._internal_dataqueue:next()
 end
 
 
