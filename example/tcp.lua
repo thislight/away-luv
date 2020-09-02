@@ -32,8 +32,7 @@ scheduler:run_task(function()
     local counter = 0
     for sock in server:accept_each() do
         counter = counter + 1
-        sock:write(tostring(counter))
-        Timer:once_exposed(200) -- make sure data sent
+        sock:write(tostring(counter), true)
         sock:close()
         if counter >= 3 then break end
     end
@@ -46,10 +45,11 @@ scheduler:run_task(function()
     local client3 = TCPClient:connect('127.0.0.1', 8964)
     for _, sock in ipairs {client1, client2, client3} do
         local name, err = sock:read()
+        print(string.format("Hello %s!", name))
         if err then
+            print(sock._internal_dataqueue:has_data())
             print(err)
         end
-        print(string.format("Hello %s!", name))
         sock:close()
     end
     scheduler:stop()
