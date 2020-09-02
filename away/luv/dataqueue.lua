@@ -69,13 +69,29 @@ function dataqueue:create()
     return self:clone_to{data = {}, waiting_threads = {}}
 end
 
-function dataqueue:add(value) table.insert(self.data, value) end
+function dataqueue:with_limit(limit, novalue_callback, limitreach_callback)
+    local obj = self:create()
+    obj.length_limit = limit
+    obj.novalue_callback = novalue_callback
+    obj.limitreach_callback = limitreach_callback
+    return obj
+end
+
+function dataqueue:add(value)
+    table.insert(self.data, value)
+    if self.length_limit and (#self.data >= self.length_limit) then
+        if self.limitreach_callback then self.limitreach_callback() end
+    end
+end
 
 function dataqueue:next()
     local value, err = self:try_next()
     if value or err then
         return value, err
     else
+        if self.novalue_callback then
+            self:novalue_callback()
+        end
         dataqueue_service:add_waited_queue(self)
         table.insert(self.waiting_threads, away.get_current_thread())
         away.wait_signal_like(nil, {kind = 'dataqueue_wake_back', queue = self})
