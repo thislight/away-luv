@@ -100,10 +100,10 @@ function dataqueue:next()
 end
 
 function dataqueue:try_next()
-    if self:has_error() then
-        return nil, self.error
-    elseif self:has_data() then
+    if self:has_data() then
         return table.remove(self.data, 1), nil
+    elseif self:has_error() then
+        return nil, self.error
     else
         return nil, nil
     end
