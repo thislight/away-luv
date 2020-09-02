@@ -28,19 +28,11 @@ function dataqueue_service:install(scheduler)
                     local process_queue = {}
                     table.move(self.waited_dataqueue, 1, #self.waited_dataqueue,
                                1, process_queue)
-                    self.waited_dataqueue = {}
-                    for _,dataqueue in ipairs(process_queue) do
+                    for i,dataqueue in ipairs(process_queue) do
                         if dataqueue:need_wake_back() then
-                            for _,thread in ipairs(dataqueue.waiting_threads) do
-                                if coroutine.status(thread) ~= 'dead' then
-                                    scheduler:push_signal{
-                                        target_thread = thread,
-                                        kind = 'dataqueue_wake_back',
-                                        queue = dataqueue
-                                    }
-                                end
-                            end
+                            self:perform_wakeback(scheduler, dataqueue)
                             dataqueue.waiting_threads = {}
+                            table.remove(self.waited_dataqueue, i)
                         end
                     end
                 end
@@ -55,6 +47,18 @@ end
 
 function dataqueue_service:add_waited_queue(dq)
     table.insert(self.waited_dataqueue, dq)
+end
+
+function dataqueue_service:perform_wakeback(scheduler, dq)
+    for _,thread in ipairs(dq.waiting_threads) do
+        if coroutine.status(thread) ~= 'dead' then
+            scheduler:push_signal{
+                target_thread = thread,
+                kind = 'dataqueue_wake_back',
+                queue = dq
+            }
+        end
+    end
 end
 
 local dataqueue = {}
@@ -83,7 +87,7 @@ function dataqueue:try_next()
     if self:has_error() then
         return nil, self.error
     elseif self:has_data() then
-        return table.remove(self.data, 1)
+        return table.remove(self.data, 1), nil
     else
         return nil, nil
     end
