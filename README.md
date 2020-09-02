@@ -1,6 +1,27 @@
 # Away for Luv
 
-> To Be Done
+## Use with standard luv interfaces
+Install luv_service from `away.luv.service` to away scheduler, and then you can use luv interface directly.
+````lua
+local uv = require 'luv'
+local away = require 'away'
+local LuvService = require 'away.luv.service'
+away.scheduler:install(LuvService)
+
+away.scheduler:run_task(function()
+    local timer = uv.new_timer()
+    uv.timer_start(timer, 1000, 0, function()
+        print('011404250519!')
+        away.scheduler:stop()
+    end)
+end)
+
+away.scheduler:run()
+````
+
+## Use with away-luv synchronous-style interfaces
+
+> Still working on it...
 
 ## License
 GNU Gerneral Public License, version 3 or later.
