@@ -47,7 +47,6 @@ scheduler:run_task(function()
         local name, err = sock:read()
         print(string.format("Hello %s!", name))
         if err then
-            print(sock._internal_dataqueue:has_data())
             print(err)
         end
         sock:close()
