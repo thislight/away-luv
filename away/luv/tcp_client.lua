@@ -63,6 +63,8 @@ function tcp_client:close()
 end
 
 function tcp_client:read()
+    local need_callback = false
+    local local_callback = luvserv:bind_callback()
     if not self.reading_flag then
         self.reading_flag = true
         luv.read_start(self._uvraw, function(err, data)
@@ -70,6 +72,10 @@ function tcp_client:read()
                 self.err = err
             elseif data then
                 table.insert(self.dataqueue, data)
+                if need_callback then
+                    need_callback = false
+                    local_callback()
+                end
             else
                 self.eof = true
                 luv.read_stop(self._uvraw)
@@ -82,8 +88,9 @@ function tcp_client:read()
         elseif #self.dataqueue > 0 then
             return table.remove(self.dataqueue, 1)
         else
-            luvserv:bind_callback()()
+            need_callback = true
             co.yield()
+            need_callback = false
         end
     end
 end

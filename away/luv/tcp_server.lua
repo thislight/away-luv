@@ -45,17 +45,30 @@ end
 
 function tcp_server:accept(backlog)
     local queue = {}
-    luv.listen(self._uvraw, backlog, function()
+    local need_callback = false
+    local local_callback = luvserv:bind_callback()
+    luv.listen(self._uvraw, backlog, function(err)
         local raw_tcp = luv.new_tcp()
         luv.accept(self._uvraw, raw_tcp)
         table.insert(queue, raw_tcp)
+        if need_callback then
+            print('callback')
+            need_callback = false
+            local_callback()
+        end
     end)
     return function()
-        if #queue > 0 then
-            local sock = table.remove(queue, 1)
-            return TCPClient:warp(sock)
-        else
-            co.yield()
+        while true do
+            if #queue > 0 then
+                local sock = table.remove(queue, 1)
+                return TCPClient:warp(sock)
+            elseif self:is_closing() then
+                return nil
+            else
+                need_callback = true
+                co.yield()
+                need_callback = false
+            end
         end
     end
 end
@@ -72,5 +85,7 @@ end
 function tcp_server:set_simultaneous_accepts(enable)
     return utils.auto_luv_fail_trans(luv.tcp_simultaneous_accepts(self._uvraw, enable))
 end
+
+function tcp_server:is_closing() return luv.is_closing(self._uvraw) end
 
 return tcp_server
