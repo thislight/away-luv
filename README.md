@@ -23,7 +23,7 @@ away.scheduler:run()
 
 > Still working on it...
 
-See [examples](example/) and source code to exprole the interfaces.
+See [examples](example/) and source code to explore the interfaces.
 
 ## License
 GNU Gerneral Public License, version 3 or later.
