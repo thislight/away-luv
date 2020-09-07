@@ -1,6 +1,17 @@
 # Away for Luv
 
-Away driver for [luv](https://github.com/luvit/luv)
+[Away](https://github.com/thislight/away) driver for [luv](https://github.com/luvit/luv).
+
+## Install away-luv
+[away-luv - LuaRocks](https://luarocks.org/modules/thislight/away-luv)
+
+### LuaRocks
+````
+luarocks install away-luv
+````
+LuaRocks can handle all mess for you.
+
+If you want a developing version, use the rockspec `away-luv-git-0.rockspec`.
 
 ## Use with standard luv interfaces
 Install luv_service from `away.luv.service` to away scheduler, and then you can use luv interface directly.
