@@ -7,7 +7,7 @@ source = {
 description = {
    homepage = "https://github.com/thislight/away-luv",
    license = "GPL-3",
-   summary = "luv driver for away",
+   summary = "away driver for luv",
    detailed = [[away-luv provides functionallity uses luv with away, and a optional synchronous-style interface]]
 }
 dependencies = {
