@@ -1,5 +1,7 @@
 # Away for Luv
 
+Away driver for [luv](https://github.com/luvit/luv)
+
 ## Use with standard luv interfaces
 Install luv_service from `away.luv.service` to away scheduler, and then you can use luv interface directly.
 ````lua
