@@ -17,6 +17,8 @@
 local away = require "away"
 local utils = require "away.luv.utils"
 
+local co = coroutine
+
 local dataqueue_service = {installed_flag = false, waited_dataqueue = {}}
 
 function dataqueue_service:install(scheduler)
@@ -24,7 +26,7 @@ function dataqueue_service:install(scheduler)
         local keepalive_thread = coroutine.create(
                                      function(self)
                 while true do
-                    coroutine.yield()
+                    co.yield()
                     local process_queue = {}
                     table.move(self.waited_dataqueue, 1, #self.waited_dataqueue,
                                1, process_queue)
@@ -37,7 +39,7 @@ function dataqueue_service:install(scheduler)
                     end
                 end
             end)
-        coroutine.resume(keepalive_thread, self)
+        co.resume(keepalive_thread, self)
         scheduler:set_auto_signal(function()
             return {target_thread = keepalive_thread}
         end)
@@ -51,7 +53,7 @@ end
 
 function dataqueue_service:perform_wakeback(scheduler, dq)
     for _,thread in ipairs(dq.waiting_threads) do
-        if coroutine.status(thread) ~= 'dead' then
+        if co.status(thread) ~= 'dead' then
             scheduler:push_signal{
                 target_thread = thread,
                 kind = 'dataqueue_wake_back',
@@ -97,6 +99,21 @@ function dataqueue:next()
         away.wait_signal_like(nil, {kind = 'dataqueue_wake_back', queue = self})
         return self:try_next()
     end
+end
+
+function dataqueue:listen(callback)
+    local d = {}
+    local thread = co.create(function(dq, descriptor, callback)
+        co.yield()
+        while true do
+            if descriptor.stop then break end
+            local value, err = dq:next()
+            callback(value, err, descriptor)
+        end
+    end)
+    d.dataqueue = self
+    co.resume(thread, self, d, callback)
+    away.schedule_thread(thread)
 end
 
 function dataqueue:try_next()

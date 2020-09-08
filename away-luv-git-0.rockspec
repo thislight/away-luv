@@ -11,7 +11,7 @@ description = {
 }
 dependencies = {
    "luv >=1.36.0, <2",
-   "away >=0.0.2, <1"
+   "away >=0.0.3, <1"
 }
 build = {
    type = "builtin",
