@@ -17,7 +17,7 @@
 local luv = require "luv"
 local luvserv = require "away.luv.service"
 local utils = require "away.luv.utils"
-local Dataqueue = require("away.luv.dataqueue").dataqueue
+local Dataqueue = require "away.dataqueue"
 local TCPClient = require "away.luv.tcp_client"
 local co = coroutine
 

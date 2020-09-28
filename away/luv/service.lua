@@ -17,7 +17,7 @@
 
 local luv = require 'luv'
 
-local dataqueue_serv = require('away.luv.dataqueue').service
+local dataqueue_serv = require 'away.dataqueue.service'
 
 local co = coroutine
 

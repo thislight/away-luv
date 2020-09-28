@@ -11,7 +11,8 @@ description = {
 }
 dependencies = {
    "luv >=1.36.0, <2",
-   "away >=0.0.3, <1"
+   "away >=0.0.3, <1",
+   "away-dataqueue >=0.1.0, <1",
 }
 build = {
    type = "builtin",
